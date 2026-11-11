@@ -9,13 +9,8 @@
         <h1>Orçamento salvo</h1>
     </header>
     <main class="detalhe-conteudo">
-        <div class="cartao cartao-cliente">
-            <div class="cliente-nome">{{ orcamento.cliente_nome }}</div>
-            <div class="linha-dado"><span>Telefone</span><span>{{ orcamento.telefone or "—" }}</span></div>
-            <div class="linha-dado"><span>Cidade</span><span>{{ orcamento.cidade or "—" }}</span></div>
-            <div class="linha-dado"><span>Veículo</span><span>{{ orcamento.veiculo or "—" }}</span></div>
-            <div class="linha-dado"><span>Data</span><span>{{ orcamento.data_formatada }}</span></div>
-            {% if orcamento.enviado_em_formatado or orcamento.mostrar_editado_em %}
+        {% if orcamento.enviado_em_formatado or orcamento.mostrar_editado_em %}
+        <div class="cartao detalhe-nota-cartao">
             <div class="detalhe-nota">
                 {% if orcamento.enviado_em_formatado %}
                 <p>
@@ -27,35 +22,19 @@
                 <p>Editado em {{ orcamento.editado_em_formatado }}.</p>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
+        {% endif %}
 
-        <div class="cartao">
-            {% for item in itens %}
-            <div class="linha-item">
-                <div>
-                    <div class="item-desc">{{ item.descricao }}</div>
-                    <div class="item-qtdxpreco">{{ item.quantidade }} × R$ {{ item.preco_formatado }}</div>
-                </div>
-                <div class="item-total-valor">R$ {{ item.total_formatado }}</div>
-            </div>
-            {% endfor %}
-            <div class="linha-subtotal-detalhe"><span>Subtotal dos itens</span><span>R$ {{ subtotal_formatado }}</span></div>
-            {% if orcamento.bomba_incluida %}
-            <div class="linha-item linha-bomba">
-                <div>
-                    <div class="item-desc">{{ orcamento.bomba_descricao }}</div>
-                    <div class="item-qtdxpreco">{{ orcamento.bomba_quantidade }} × R$ {{ orcamento.bomba_preco_formatado }}</div>
-                </div>
-                <div class="item-total-valor">R$ {{ orcamento.bomba_total_formatado }}</div>
-            </div>
-            {% endif %}
+        <div class="pdf-preview-wrap">
+            <iframe
+                src="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
+                class="pdf-preview"
+                title="Pré-visualização do orçamento em PDF"
+            ></iframe>
         </div>
-
-        <div class="cartao cartao-total-detalhe">
-            <span>TOTAL</span>
-            <span>R$ {{ total_formatado }}</span>
-        </div>
+        <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="pdf-preview-abrir">
+            Não conseguiu ver o orçamento acima? Toque aqui pra abrir o PDF.
+        </a>
 
         <div class="botoes-acao">
             <button

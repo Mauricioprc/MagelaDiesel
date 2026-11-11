@@ -1,5 +1,20 @@
+import sqlite3
+
 from conftest import _extrair_csrf, login
 from orcamentos import _nome_arquivo_pdf
+
+
+def _buscar_orcamento(client, orcamento_id):
+    conn = sqlite3.connect(client.application.config["DATABASE"])
+    conn.row_factory = sqlite3.Row
+    orcamento = conn.execute(
+        "SELECT * FROM orcamentos WHERE id = ?", (orcamento_id,)
+    ).fetchone()
+    itens = conn.execute(
+        "SELECT * FROM itens WHERE orcamento_id = ? ORDER BY ordem, id", (orcamento_id,)
+    ).fetchall()
+    conn.close()
+    return orcamento, itens
 
 
 def _csrf(client, url):
@@ -57,10 +72,15 @@ def test_criar_orcamento_calcula_total_com_bomba(client):
     assert resposta.status_code == 302
     assert "/orcamentos/1" in resposta.headers["Location"]
 
+    orcamento_id = resposta.headers["Location"].rstrip("/").split("/")[-1]
+    orcamento, itens = _buscar_orcamento(client, orcamento_id)
+    subtotal = sum(item["quantidade"] * item["preco_centavos"] for item in itens)
+    bomba = orcamento["bomba_quantidade"] * orcamento["bomba_preco_centavos"]
+    assert subtotal + bomba == 186400  # 4 x 191,00 = 764,00 + bomba 1.100,00
+
     detalhe = client.get(resposta.headers["Location"])
-    html = detalhe.get_data(as_text=True)
-    assert "Lucas" in html
-    assert "1.864,00" in html  # 4 x 191,00 = 764,00 + bomba 1.100,00
+    assert detalhe.status_code == 200
+    assert "<iframe" in detalhe.get_data(as_text=True)
 
 
 def test_criar_sem_bomba_nao_soma_bomba(client):
@@ -81,10 +101,10 @@ def test_criar_sem_bomba_nao_soma_bomba(client):
             "bomba_preco": "1.100,00",
         },
     )
-    detalhe = client.get(resposta.headers["Location"])
-    html = detalhe.get_data(as_text=True)
-    assert "66,00" in html
-    assert "1.100,00" not in html
+    orcamento_id = resposta.headers["Location"].rstrip("/").split("/")[-1]
+    orcamento, itens = _buscar_orcamento(client, orcamento_id)
+    assert itens[0]["preco_centavos"] == 6600
+    assert orcamento["bomba_incluida"] == 0
 
 
 def test_criar_sem_nome_retorna_erro(client):
@@ -189,10 +209,11 @@ def test_item_sem_descricao_e_ignorado(client):
             "bomba_incluida": "0",
         },
     )
-    detalhe = client.get(resposta.headers["Location"])
-    html = detalhe.get_data(as_text=True)
-    assert "Bicos" in html
-    assert "10,00" in html
+    orcamento_id = resposta.headers["Location"].rstrip("/").split("/")[-1]
+    _, itens = _buscar_orcamento(client, orcamento_id)
+    assert len(itens) == 1
+    assert itens[0]["descricao"] == "Bicos"
+    assert itens[0]["preco_centavos"] == 1000
 
 
 def test_editar_orcamento_sem_nunca_ter_sido_enviado_nao_mostra_editado_em(client):
