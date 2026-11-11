@@ -63,12 +63,16 @@ ALTURA_RODAPE = 24
 ENDERECO_LINHA_1 = "Av. Joaquim Três Pontas, n° 430, Bairro: Santa Terezinha"
 ENDERECO_LINHA_2 = "Boa Esperança - MG 37170-000 · Tel.: (35) 3851-2837"
 
-LOGOS_MARCAS = [
-    ("LogoCat.png", "CAT"),
-    ("Logodelphi.png", "Delphi"),
+# duas linhas: a primeira (alinhada com o nome/endereço) com 3 marcas, a
+# segunda, embaixo, centralizada, com as outras 2.
+LOGOS_LINHA_1 = [
     ("Logonew-holland.png", "New Holland Agriculture"),
     ("logoBosch.png", "Bosch"),
     ("Logocase.png", "Case IH Agriculture"),
+]
+LOGOS_LINHA_2 = [
+    ("LogoCat.png", "CAT"),
+    ("Logodelphi.png", "Delphi"),
 ]
 
 
@@ -234,39 +238,67 @@ def _desenhar_cabecalho(c, orcamento):
     c.setFont(FONTE_ITALICO, 8)
     c.drawString(texto_x, texto_y - 12, ENDERECO_LINHA_1)
     c.drawString(texto_x, texto_y - 22, ENDERECO_LINHA_2)
+    largura_endereco = max(
+        largura_titulo,
+        pdfmetrics.stringWidth(ENDERECO_LINHA_1, FONTE_ITALICO, 8),
+        pdfmetrics.stringWidth(ENDERECO_LINHA_2, FONTE_ITALICO, 8),
+    )
 
-    # logos das marcas, alinhados à direita, todas na caixa do tamanho da CAT
-    altura_caixa_logo = 16
-    espaco = 8
+    # logos das marcas em 2 linhas: New Holland/Bosch/Case IH em cima,
+    # alinhadas com o nome/endereço; CAT/Delphi embaixo, centralizadas sob
+    # a linha de cima. Todas na mesma altura — os arquivos em static/img/
+    # já vêm recortados pro conteúdo visível de cada uma (sem a margem
+    # branca/transparente ao redor), senão a altura igual não bastaria pra
+    # parecerem do mesmo tamanho. A altura se ajusta pra a linha de cima
+    # caber no espaço que sobra ao lado do texto da empresa, sem sobrepor
+    # (um teto de 16pt pra não ficarem grandes demais quando sobra espaço).
+    espaco = 6
+    espaco_entre_linhas = 5
     x_direita = MARGEM_X + LARGURA_UTIL
+    largura_disponivel = x_direita - (texto_x + largura_endereco) - 12
 
-    caminho_cat = os.path.join(IMG_DIR, LOGOS_MARCAS[0][0])
-    cat_lw, cat_lh = ImageReader(caminho_cat).getSize()
-    caixa_largura = altura_caixa_logo * cat_lw / cat_lh
+    def largura_aspecto(arquivo):
+        lw, lh = ImageReader(os.path.join(IMG_DIR, arquivo)).getSize()
+        return lw / lh
 
-    largura_total = caixa_largura * len(LOGOS_MARCAS) + espaco * (len(LOGOS_MARCAS) - 1)
+    aspectos_linha1 = [largura_aspecto(arquivo) for arquivo, _nome in LOGOS_LINHA_1]
+    altura_pelo_espaco = (
+        largura_disponivel - espaco * (len(LOGOS_LINHA_1) - 1)
+    ) / sum(aspectos_linha1)
+    altura_logos = min(16, altura_pelo_espaco)
 
-    x = x_direita - largura_total
-    for arquivo, _nome in LOGOS_MARCAS:
-        caminho = os.path.join(IMG_DIR, arquivo)
-        lw, lh = ImageReader(caminho).getSize()
-        escala = min(caixa_largura / lw, altura_caixa_logo / lh)
-        largura_img = lw * escala
-        altura_img = lh * escala
-        c.drawImage(
-            caminho,
-            x + (caixa_largura - largura_img) / 2,
-            y - altura_caixa_logo + (altura_caixa_logo - altura_img) / 2,
-            width=largura_img,
-            height=altura_img,
-            mask="auto",
-        )
-        x += caixa_largura + espaco
+    def desenhar_linha_logos(logos, x_inicio, y_topo):
+        x = x_inicio
+        for arquivo, _nome in logos:
+            largura_img = altura_logos * largura_aspecto(arquivo)
+            c.drawImage(
+                os.path.join(IMG_DIR, arquivo),
+                x,
+                y_topo - altura_logos,
+                width=largura_img,
+                height=altura_logos,
+                mask="auto",
+            )
+            x += largura_img + espaco
+        return x - espaco  # ponta direita da última logo desenhada
 
-    linha_y = y - altura_logo - 6
+    larguras_linha1 = [altura_logos * a for a in aspectos_linha1]
+    largura_linha1 = sum(larguras_linha1) + espaco * (len(LOGOS_LINHA_1) - 1)
+    x_inicio_linha1 = x_direita - largura_linha1
+    desenhar_linha_logos(LOGOS_LINHA_1, x_inicio_linha1, y)
+
+    larguras_linha2 = [altura_logos * largura_aspecto(a) for a, _n in LOGOS_LINHA_2]
+    largura_linha2 = sum(larguras_linha2) + espaco * (len(LOGOS_LINHA_2) - 1)
+    centro_linha1 = x_inicio_linha1 + largura_linha1 / 2
+    x_inicio_linha2 = centro_linha1 - largura_linha2 / 2
+    y_linha2 = y - altura_logos - espaco_entre_linhas
+    desenhar_linha_logos(LOGOS_LINHA_2, x_inicio_linha2, y_linha2)
+
+    altura_bloco_logos = altura_logos * 2 + espaco_entre_linhas
+    linha_y = y - max(altura_logo, altura_bloco_logos) - 6
     c.setLineWidth(1)
     c.line(MARGEM_X, linha_y, MARGEM_X + LARGURA_UTIL, linha_y)
-    return linha_y - 14
+    return linha_y - 14 - 15  # uma linha a mais de respiro antes do NOME
 
 
 def _data_br(data_iso):

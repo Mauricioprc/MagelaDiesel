@@ -1,5 +1,9 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()  # lê o arquivo .env (se existir) antes de ler qualquer config
+
 from flask import Flask
 
 import csrf

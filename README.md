@@ -12,14 +12,23 @@ python -m venv .venv
 pip install -r requirements-dev.txt
 ```
 
-2. Defina as variáveis de ambiente (veja `.env.example`). No PowerShell:
+2. Copie `.env.example` para `.env` e preencha (`SECRET_KEY`, e os usuários em
+   `USUARIO_1`/`SENHA_1`, `USUARIO_2`/`SENHA_2`...). O `.env` nunca entra no
+   git (`.gitignore`); em produção, defina essas mesmas variáveis direto na
+   configuração do servidor em vez de usar o arquivo.
 
-```powershell
-$env:SECRET_KEY = "uma-chave-aleatoria-qualquer-para-teste"
-$env:SESSION_COOKIE_SECURE = "0"
+```bash
+cp .env.example .env
 ```
 
-3. Crie um usuário:
+3. Crie os usuários definidos no `.env` (lê `USUARIO_1`/`SENHA_1` etc. e
+   salva cada senha com hash no banco — nunca em texto puro):
+
+```bash
+python criar_usuario.py
+```
+
+   Pra criar ou trocar a senha de só um usuário na hora, sem usar o `.env`:
 
 ```bash
 python criar_usuario.py maria
@@ -51,7 +60,7 @@ pytest
 - `dinheiro.py` — conversão centavos ↔ string formatada.
 - `pdf.py` — monta o PDF do orçamento igual ao modelo de papel (cabeçalho, logos, tabela, regra de ajuste de fonte e paginação).
 - `csrf.py` — geração/validação de token CSRF.
-- `criar_usuario.py` — script de linha de comando para criar/atualizar usuários (sem tela pública de cadastro).
+- `criar_usuario.py` — script de linha de comando para criar/atualizar usuários (sem tela pública de cadastro); sem argumento, lê `USUARIO_N`/`SENHA_N` do `.env`.
 - `templates/`, `static/` — HTML, CSS, JS e imagens/fontes.
 - `static/fonts/` — fontes Bitstream Vera (licença livre, embutidas localmente; `bitstream-vera-license.txt`).
 - `instance/orcamentos.db` — banco SQLite (fora do controle de versão).
