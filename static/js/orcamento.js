@@ -68,6 +68,40 @@
         });
     }
 
+    // Telefone: DDD é opcional. Sem DDD (até 9 dígitos) fica "9.8888-9999"
+    // (ou "8888-9999" se for fixo, com só 8 dígitos); com DDD (10 ou 11
+    // dígitos no total) acrescenta "(35) " na frente.
+    function formatarTelefone(digitos) {
+        digitos = digitos.slice(0, 11);
+        var ddd = "";
+        var numeroLocal = digitos;
+        if (digitos.length > 9) {
+            ddd = digitos.slice(0, 2);
+            numeroLocal = digitos.slice(2);
+        }
+
+        var parteLocal;
+        if (numeroLocal.length <= 8) {
+            parteLocal = numeroLocal.length <= 4
+                ? numeroLocal
+                : numeroLocal.slice(0, 4) + "-" + numeroLocal.slice(4);
+        } else {
+            parteLocal = numeroLocal.slice(0, 1) + "." + numeroLocal.slice(1, 5) +
+                (numeroLocal.length > 5 ? "-" + numeroLocal.slice(5) : "");
+        }
+
+        return ddd ? "(" + ddd + ") " + parteLocal : parteLocal;
+    }
+
+    function aplicarMascaraTelefone(input) {
+        input.setAttribute("inputmode", "numeric");
+        input.addEventListener("input", function () {
+            var digitos = apenasDigitos(input.value).slice(0, 11);
+            input.value = digitos ? formatarTelefone(digitos) : "";
+            agendarRascunho();
+        });
+    }
+
     function formatarReais(centavos) {
         return formatarCentavos(String(Math.max(0, centavos)));
     }
@@ -484,11 +518,19 @@
         inicializarBomba();
         inicializarClienteAutofill();
         inicializarVeiculoCopia();
+        aplicarMascaraTelefone(document.getElementById("tel"));
         restaurarRascunho();
+
+        var telInput = document.getElementById("tel");
+        var digitosTelefoneAtual = apenasDigitos(telInput.value).slice(0, 11);
+        if (digitosTelefoneAtual) {
+            telInput.value = formatarTelefone(digitosTelefoneAtual);
+        }
+
         recalcularTotais();
         atualizarPreviewPdf();
 
-        ["nome", "tel", "cidade", "veiculo", "data"].forEach(function (id) {
+        ["nome", "cidade", "veiculo", "data"].forEach(function (id) {
             document.getElementById(id).addEventListener("input", agendarRascunho);
         });
 
