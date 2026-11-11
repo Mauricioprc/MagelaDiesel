@@ -88,11 +88,7 @@
                     if (podeCompartilharArquivo) {
                         status.hidden = true;
                         return navigator
-                            .share({
-                                files: [arquivo],
-                                title: "Orçamento",
-                                text: "Segue o orçamento da Magela Diesel."
-                            })
+                            .share({ files: [arquivo] })
                             .then(marcarComoEnviado)
                             .then(function (dados) {
                                 mostrarStatus("Enviado em " + dados.enviado_em_formatado + ".");
