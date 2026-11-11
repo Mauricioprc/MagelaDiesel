@@ -495,13 +495,6 @@ input[type="search"] {
     cursor: pointer;
 }
 
-.ajuda {
-    margin: 0;
-    font-size: 14px;
-    line-height: 20px;
-    color: var(--cinza-texto);
-}
-
 .linha-subtotal {
     display: flex;
     justify-content: space-between;

@@ -1,6 +1,6 @@
 # Sistema de Orçamentos — Magela Diesel
 
-Fase 1: estrutura, banco, login, criação de usuário por script, lista e busca.
+Fases concluídas: estrutura/banco/login (1), formulário de orçamento (2), geração do PDF (3).
 
 ## Rodando localmente
 
@@ -46,15 +46,17 @@ pytest
 - `config.py` — configuração lida de variáveis de ambiente.
 - `db.py` — conexão SQLite e inicialização do schema (`schema.sql`).
 - `auth.py` — login, logout, limite de tentativas, decorator `login_required`.
-- `main.py` — tela Início e tela Lista (com busca).
+- `main.py` — tela Início.
+- `orcamentos.py` — lista (com busca), novo/editar/salvar/excluir, geração do PDF.
+- `dinheiro.py` — conversão centavos ↔ string formatada.
+- `pdf.py` — monta o PDF do orçamento igual ao modelo de papel (cabeçalho, logos, tabela, regra de ajuste de fonte e paginação).
 - `csrf.py` — geração/validação de token CSRF.
 - `criar_usuario.py` — script de linha de comando para criar/atualizar usuários (sem tela pública de cadastro).
-- `templates/`, `static/` — HTML e CSS/imagens.
+- `templates/`, `static/` — HTML, CSS, JS e imagens/fontes.
+- `static/fonts/` — fontes Bitstream Vera (licença livre, embutidas localmente; `bitstream-vera-license.txt`).
 - `instance/orcamentos.db` — banco SQLite (fora do controle de versão).
 
 ## O que falta (próximas fases)
 
-- Fase 2: formulário de novo/editar orçamento (máscara de dinheiro, bomba, autocomplete, rascunho).
-- Fase 3: geração do PDF.
-- Fase 4: WhatsApp, impressão, cópia do PDF enviado.
+- Fase 4: enviar por WhatsApp (Web Share API), cópia do PDF enviado (`pdf_enviados`), "editado em" só depois do envio.
 - Fase 5: backup, configurações e guia de deploy no PythonAnywhere.

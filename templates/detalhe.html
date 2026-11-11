@@ -52,10 +52,10 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/></svg>
                 Enviar por WhatsApp
             </button>
-            <button type="button" class="botao botao-contorno botao-desabilitado" disabled title="Disponível na fase 3">
+            <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="botao botao-contorno">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"/></svg>
                 Imprimir ou baixar PDF
-            </button>
+            </a>
             <div class="botoes-linha">
                 <a href="{{ url_for('orcamentos.editar', orcamento_id=orcamento.id) }}" class="botao botao-secundario">Editar</a>
                 <button type="button" id="botao-excluir" class="botao botao-perigo">Excluir</button>

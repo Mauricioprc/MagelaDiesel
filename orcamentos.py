@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from flask import (
     Blueprint,
+    Response,
     abort,
     g,
     redirect,
@@ -14,6 +15,7 @@ from auth import login_required
 from csrf import validate_csrf_or_abort
 from db import get_db, obter_configuracao
 from dinheiro import centavos_para_reais, string_para_centavos
+from pdf import gerar_pdf_orcamento
 
 bp = Blueprint("orcamentos", __name__, url_prefix="/orcamentos")
 
@@ -239,6 +241,19 @@ def detalhe(orcamento_id):
         subtotal_formatado=centavos_para_reais(subtotal),
         total_formatado=centavos_para_reais(subtotal + bomba_total),
     )
+
+
+@bp.route("/<int:orcamento_id>/pdf")
+@login_required
+def pdf(orcamento_id):
+    orcamento = _buscar_orcamento_ou_404(orcamento_id)
+    itens = _buscar_itens(orcamento_id)
+    pdf_bytes = gerar_pdf_orcamento(orcamento, itens)
+    resposta = Response(pdf_bytes, mimetype="application/pdf")
+    resposta.headers["Content-Disposition"] = (
+        f'inline; filename="orcamento-{orcamento_id}.pdf"'
+    )
+    return resposta
 
 
 @bp.route("/<int:orcamento_id>/editar", methods=["GET", "POST"])
