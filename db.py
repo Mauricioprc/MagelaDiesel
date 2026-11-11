@@ -34,6 +34,13 @@ def init_db_command():
     click.echo("Banco inicializado.")
 
 
+def obter_configuracao(chave, padrao=None):
+    linha = get_db().execute(
+        "SELECT valor FROM configuracoes WHERE chave = ?", (chave,)
+    ).fetchone()
+    return linha["valor"] if linha is not None else padrao
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

@@ -1,4 +1,4 @@
-# Sistema de Orçamentos — MD Magela Diesel
+# Sistema de Orçamentos — Magela Diesel
 
 Fase 1: estrutura, banco, login, criação de usuário por script, lista e busca.
 

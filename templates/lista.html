@@ -17,13 +17,13 @@
         {% if orcamentos %}
         <div class="cartoes">
             {% for o in orcamentos %}
-            <a href="#" class="cartao">
+            <a href="{{ url_for('orcamentos.detalhe', orcamento_id=o.id) }}" class="cartao">
                 <div class="cartao-linha-topo">
                     <span class="cartao-nome">{{ o.cliente_nome }}</span>
                     <span class="cartao-total">R$ {{ o.total_formatado }}</span>
                 </div>
                 <div class="cartao-sub">{{ o.veiculo or "—" }} · {{ o.cidade or "—" }}</div>
-                <div class="cartao-sub">{{ o.data }}</div>
+                <div class="cartao-sub">{{ o.data_formatada }}</div>
             </a>
             {% endfor %}
         </div>

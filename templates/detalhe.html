@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block titulo %}Orçamento salvo{% endblock %}
+{% block conteudo %}
+<div class="tela tela-detalhe">
+    <header class="topo">
+        <a href="{{ url_for('orcamentos.lista') }}" aria-label="Voltar para a lista" class="botao-voltar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <h1>Orçamento salvo</h1>
+    </header>
+    <main class="detalhe-conteudo">
+        <div class="cartao cartao-cliente">
+            <div class="cliente-nome">{{ orcamento.cliente_nome }}</div>
+            <div class="linha-dado"><span>Telefone</span><span>{{ orcamento.telefone or "—" }}</span></div>
+            <div class="linha-dado"><span>Cidade</span><span>{{ orcamento.cidade or "—" }}</span></div>
+            <div class="linha-dado"><span>Veículo</span><span>{{ orcamento.veiculo or "—" }}</span></div>
+            <div class="linha-dado"><span>Data</span><span>{{ orcamento.data_formatada }}</span></div>
+            {% if orcamento.editado_em %}
+            <div class="detalhe-nota">Editado em {{ orcamento.editado_em_formatado }}.</div>
+            {% endif %}
+        </div>
+
+        <div class="cartao">
+            {% for item in itens %}
+            <div class="linha-item">
+                <div>
+                    <div class="item-desc">{{ item.descricao }}</div>
+                    <div class="item-qtdxpreco">{{ item.quantidade }} × R$ {{ item.preco_formatado }}</div>
+                </div>
+                <div class="item-total-valor">R$ {{ item.total_formatado }}</div>
+            </div>
+            {% endfor %}
+            <div class="linha-subtotal-detalhe"><span>Subtotal dos itens</span><span>R$ {{ subtotal_formatado }}</span></div>
+            {% if orcamento.bomba_incluida %}
+            <div class="linha-item linha-bomba">
+                <div>
+                    <div class="item-desc">{{ orcamento.bomba_descricao }}</div>
+                    <div class="item-qtdxpreco">{{ orcamento.bomba_quantidade }} × R$ {{ orcamento.bomba_preco_formatado }}</div>
+                </div>
+                <div class="item-total-valor">R$ {{ orcamento.bomba_total_formatado }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="cartao cartao-total-detalhe">
+            <span>TOTAL</span>
+            <span>R$ {{ total_formatado }}</span>
+        </div>
+
+        <div class="botoes-acao">
+            <button type="button" class="botao botao-whatsapp botao-desabilitado" disabled title="Disponível na fase 4">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/></svg>
+                Enviar por WhatsApp
+            </button>
+            <button type="button" class="botao botao-contorno botao-desabilitado" disabled title="Disponível na fase 3">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"/></svg>
+                Imprimir ou baixar PDF
+            </button>
+            <div class="botoes-linha">
+                <a href="{{ url_for('orcamentos.editar', orcamento_id=orcamento.id) }}" class="botao botao-secundario">Editar</a>
+                <button type="button" id="botao-excluir" class="botao botao-perigo">Excluir</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-excluir" class="modal-fundo" hidden>
+        <div role="alertdialog" aria-label="Confirmar exclusão" class="modal-folha">
+            <div class="modal-titulo">Excluir este orçamento?</div>
+            <div class="modal-texto">O orçamento de {{ orcamento.cliente_nome }} ({{ orcamento.data_formatada }}) sai da lista e não dá para desfazer.</div>
+            <form method="post" action="{{ url_for('orcamentos.excluir', orcamento_id=orcamento.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="botao botao-perigo-solido">Sim, excluir</button>
+            </form>
+            <button type="button" id="botao-cancelar-exclusao" class="botao botao-secundario">Cancelar</button>
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/detalhe.js') }}"></script>
+{% endblock %}

@@ -27,9 +27,11 @@ def create_app(test_config=None):
 
     import auth
     import main
+    import orcamentos
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
+    app.register_blueprint(orcamentos.bp)
 
     with app.app_context():
         db.init_db()

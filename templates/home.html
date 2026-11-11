@@ -5,7 +5,7 @@
     <header class="topo">
         <div class="topo-marca">
             <img src="{{ url_for('static', filename='img/LogoMD.png') }}" alt="Logo MD" class="topo-logo">
-            <h1>MD Magela Diesel</h1>
+            <h1>Magela Diesel</h1>
         </div>
         <form method="post" action="{{ url_for('auth.logout') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -13,13 +13,13 @@
         </form>
     </header>
     <main class="home-conteudo">
-        <button type="button" class="quadro quadro-solido quadro-desabilitado" disabled title="Disponível na próxima fase">
+        <a href="{{ url_for('orcamentos.novo') }}" class="quadro quadro-solido">
             <span class="quadro-icone" aria-hidden="true">
                 <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6"/><path d="M9 15h6"/></svg>
             </span>
             <span class="quadro-texto">Fazer orçamento</span>
-        </button>
-        <a href="{{ url_for('main.lista_orcamentos') }}" class="quadro quadro-contorno">
+        </a>
+        <a href="{{ url_for('orcamentos.lista') }}" class="quadro quadro-contorno">
             <span class="quadro-icone" aria-hidden="true">
                 <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
             </span>

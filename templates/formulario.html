@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block titulo %}{{ "Editar orçamento" if modo == "editar" else "Novo orçamento" }}{% endblock %}
+{% block conteudo %}
+<div class="tela">
+    <header class="topo">
+        <a href="{{ url_for('orcamentos.detalhe', orcamento_id=orcamento.id) if modo == 'editar' else url_for('main.home') }}" aria-label="Voltar" class="botao-voltar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <h1>{{ "Editar orçamento" if modo == "editar" else "Novo orçamento" }}</h1>
+        <span id="indicador-rascunho" class="indicador-rascunho" hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F7A3E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>
+            Rascunho salvo
+        </span>
+    </header>
+
+    <form id="form-orcamento" method="post" class="form-orcamento" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" id="orcamento-id" value="{{ orcamento.id or '' }}">
+
+        <div class="form-rolavel">
+        {% if erro %}
+        <div class="flash flash-erro">{{ erro }}</div>
+        {% endif %}
+
+        <section class="secao">
+            <h2>Cliente</h2>
+            <div class="campo">
+                <label for="nome">Nome</label>
+                <input id="nome" name="nome" type="text" value="{{ orcamento.cliente_nome }}" required>
+            </div>
+            <div class="campo">
+                <label for="tel">Telefone</label>
+                <input id="tel" name="telefone" type="tel" value="{{ orcamento.telefone }}">
+            </div>
+            <div class="campo">
+                <label for="cidade">Cidade</label>
+                <input id="cidade" name="cidade" type="text" value="{{ orcamento.cidade }}">
+            </div>
+            <div class="campo">
+                <label for="veiculo">Veículo (trator e modelo)</label>
+                <input id="veiculo" name="veiculo" type="text" value="{{ orcamento.veiculo }}">
+            </div>
+            <div class="campo campo-data">
+                <label for="data">Data</label>
+                <input id="data" name="data" type="date" value="{{ orcamento.data }}" required>
+            </div>
+        </section>
+
+        <section class="secao">
+            <h2>Itens</h2>
+            <div id="itens">
+                {% for item in itens %}
+                <div class="item-linha">
+                    <div class="item-linha-topo">
+                        <input type="text" class="campo-descricao" name="item_descricao" value="{{ item.descricao }}" list="lista-sugestoes" placeholder="Descrição do item" aria-label="Descrição do item">
+                        <button type="button" class="botao-remover-item" aria-label="Remover item">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"/></svg>
+                        </button>
+                    </div>
+                    <div class="item-linha-valores">
+                        <div class="campo-mini">
+                            <span>Quant.</span>
+                            <input type="text" class="campo-quantidade" name="item_quantidade" value="{{ item.quantidade }}" inputmode="numeric" aria-label="Quantidade do item">
+                        </div>
+                        <div class="campo-mini">
+                            <span>Unitário (R$)</span>
+                            <input type="text" class="campo-preco" name="item_preco" value="{{ item.preco_formatado }}" inputmode="numeric" placeholder="0,00" aria-label="Valor unitário do item">
+                        </div>
+                        <div class="campo-mini campo-total-item">
+                            <span>Total</span>
+                            <div class="item-total">R$ {{ item.total_formatado }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <template id="modelo-item">
+                <div class="item-linha">
+                    <div class="item-linha-topo">
+                        <input type="text" class="campo-descricao" name="item_descricao" value="" list="lista-sugestoes" placeholder="Descrição do item" aria-label="Descrição do item">
+                        <button type="button" class="botao-remover-item" aria-label="Remover item">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"/></svg>
+                        </button>
+                    </div>
+                    <div class="item-linha-valores">
+                        <div class="campo-mini">
+                            <span>Quant.</span>
+                            <input type="text" class="campo-quantidade" name="item_quantidade" value="1" inputmode="numeric" aria-label="Quantidade do item">
+                        </div>
+                        <div class="campo-mini">
+                            <span>Unitário (R$)</span>
+                            <input type="text" class="campo-preco" name="item_preco" value="" inputmode="numeric" placeholder="0,00" aria-label="Valor unitário do item">
+                        </div>
+                        <div class="campo-mini campo-total-item">
+                            <span>Total</span>
+                            <div class="item-total">R$ 0,00</div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <button type="button" id="botao-adicionar-item" class="botao-adicionar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Adicionar item
+            </button>
+            <p class="ajuda">Digite só os números: o valor se forma sozinho, da direita para a esquerda (19100 vira 191,00). Ao digitar a descrição, o sistema sugere itens usados antes, com o último preço.</p>
+            <div class="linha-subtotal">
+                <span>Subtotal dos itens</span>
+                <span id="subtotal-exibicao">R$ {{ subtotal_formatado }}</span>
+            </div>
+        </section>
+
+        <section class="secao">
+            <h2>Serviço da bomba (padrão)</h2>
+            <div class="cartao-bomba">
+                <div class="bomba-cabecalho">
+                    <span>Incluir no orçamento</span>
+                    <input type="hidden" id="bomba-incluida" name="bomba_incluida" value="{{ '1' if orcamento.bomba_incluida else '0' }}">
+                    <button type="button" id="bomba-toggle" role="switch" aria-checked="{{ 'true' if orcamento.bomba_incluida else 'false' }}" aria-label="Incluir serviço da bomba" class="switch {{ 'switch-ligado' if orcamento.bomba_incluida else '' }}">
+                        <span class="switch-bolinha"></span>
+                    </button>
+                </div>
+                <div id="bomba-campos" {{ "hidden" if not orcamento.bomba_incluida else "" }}>
+                    <input type="text" id="bomba_descricao" name="bomba_descricao" value="{{ orcamento.bomba_descricao }}" aria-label="Descrição do serviço da bomba">
+                    <div class="item-linha-valores">
+                        <div class="campo-mini">
+                            <span>Quant.</span>
+                            <input type="text" id="bomba_quantidade" name="bomba_quantidade" value="{{ orcamento.bomba_quantidade }}" inputmode="numeric" aria-label="Quantidade do serviço da bomba">
+                        </div>
+                        <div class="campo-mini">
+                            <span>Unitário (R$)</span>
+                            <input type="text" id="bomba_preco" name="bomba_preco" value="{{ orcamento.bomba_preco_formatado }}" inputmode="numeric" aria-label="Valor unitário do serviço da bomba">
+                        </div>
+                        <div class="campo-mini campo-total-item">
+                            <span>Total</span>
+                            <div id="bomba-total-exibicao">R$ {{ orcamento.bomba_total_formatado }}</div>
+                        </div>
+                    </div>
+                </div>
+                <p id="bomba-aviso" {{ "hidden" if orcamento.bomba_incluida else "" }}>Este orçamento não inclui o serviço da bomba.</p>
+            </div>
+        </section>
+        </div>
+
+        <div class="barra-total">
+            <div class="barra-total-texto">
+                <span class="barra-total-label">TOTAL</span>
+                <span id="total-exibicao" class="barra-total-valor">R$ {{ total_formatado }}</span>
+            </div>
+            <button type="submit" class="botao botao-primario barra-botao-salvar">Salvar</button>
+        </div>
+    </form>
+</div>
+
+<datalist id="lista-sugestoes">
+    {% for desc in sugestoes.keys() %}
+    <option value="{{ desc }}"></option>
+    {% endfor %}
+</datalist>
+<script>window.SUGESTOES_ITENS = {{ sugestoes | tojson }};</script>
+<script src="{{ url_for('static', filename='js/orcamento.js') }}"></script>
+{% endblock %}
