@@ -188,6 +188,15 @@ input[type="search"] {
     cursor: pointer;
 }
 
+.aviso-backup {
+    margin: 10px 16px 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #FFF4E5;
+    color: #8A5300;
+    font-size: 14px;
+}
+
 /* Home */
 .home-conteudo {
     flex: 1;
@@ -865,4 +874,15 @@ input[type="search"] {
     font-size: 16px;
     line-height: 22px;
     color: var(--cinza-texto);
+}
+
+/* Configurações */
+.form-config {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-backup {
+    margin-top: 12px;
 }

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Configurações{% endblock %}
+{% block conteudo %}
+<div class="tela">
+    <header class="topo">
+        <a href="{{ url_for('main.home') }}" aria-label="Voltar ao início" class="botao-voltar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <h1>Configurações</h1>
+    </header>
+    <main class="detalhe-conteudo">
+        <form method="post" class="cartao form-config">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="campo">
+                <label for="bomba_preco">Preço padrão da bomba (R$)</label>
+                <input type="text" inputmode="numeric" id="bomba_preco" name="bomba_preco" value="{{ bomba_preco_formatado }}">
+            </div>
+
+            <div class="campo">
+                <label for="validade_dias">Validade padrão do orçamento (dias)</label>
+                <input type="text" inputmode="numeric" id="validade_dias" name="validade_dias" value="{{ validade_dias }}">
+            </div>
+
+            <button type="submit" class="botao botao-primario">Salvar</button>
+        </form>
+
+        <div class="cartao">
+            <div class="linha-dado">
+                <span>Último backup baixado</span>
+                <span>{{ ultimo_backup_formatado or "nunca" }}</span>
+            </div>
+            {% if aviso_backup %}
+            <div class="detalhe-nota">
+                <p>Já faz mais de {{ dias_aviso_backup }} dias desde o último backup (ou nenhum foi baixado ainda). Baixe um backup e guarde fora do PythonAnywhere.</p>
+            </div>
+            {% endif %}
+            <form method="post" action="{{ url_for('configuracoes.backup') }}" class="form-backup">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="botao botao-contorno">Baixar backup</button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

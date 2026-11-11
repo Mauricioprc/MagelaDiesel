@@ -76,6 +76,7 @@ def _orcamento_fake(bomba_incluida=True, **extras):
         "bomba_descricao": "Desmontar, montar e regular bomba injetora na bancada de teste",
         "bomba_quantidade": 1,
         "bomba_preco_centavos": 110000,
+        "validade_dias": 15,
     }
     base.update(extras)
     return _Linha(base)
@@ -113,3 +114,9 @@ def test_sem_itens_nao_quebra():
     pdf_bytes = gerar_pdf_orcamento(_orcamento_fake(bomba_incluida=False), [])
     assert pdf_bytes.startswith(b"%PDF")
     assert _contar_paginas(pdf_bytes) == 1
+
+
+def test_validade_dias_do_orcamento_aparece_no_rodape():
+    pdf_30_dias = gerar_pdf_orcamento(_orcamento_fake(validade_dias=30), _itens_fake(1))
+    pdf_15_dias = gerar_pdf_orcamento(_orcamento_fake(validade_dias=15), _itens_fake(1))
+    assert pdf_30_dias != pdf_15_dias

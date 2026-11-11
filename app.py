@@ -30,12 +30,14 @@ def create_app(test_config=None):
     csrf.init_app(app)
 
     import auth
+    import configuracoes
     import main
     import orcamentos
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
     app.register_blueprint(orcamentos.bp)
+    app.register_blueprint(configuracoes.bp)
 
     with app.app_context():
         db.init_db()

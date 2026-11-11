@@ -379,14 +379,14 @@ def _desenhar_linha(c, y, altura, valores, modo, negrito_total=False, italico_ro
     return y - altura
 
 
-def _desenhar_garantia_e_rodape(c, y):
+def _desenhar_garantia_e_rodape(c, y, validade_dias):
     c.setFont(FONTE_NEGRITO, 10)
     c.drawString(MARGEM_X, y - 14, "Garantia de 90 dias por defeito de fábrica")
 
     rodape_y = MARGEM_BASE
     c.setFont(FONTE_ITALICO, 9)
     c.setFillGray(0.55)
-    c.drawString(MARGEM_X, rodape_y, "Orçamento válido por 15 dias")
+    c.drawString(MARGEM_X, rodape_y, f"Orçamento válido por {validade_dias} dias")
     c.setFillGray(0)
     texto_direita = "Obrigado! Volte Sempre!"
     largura = pdfmetrics.stringWidth(texto_direita, FONTE_ITALICO, 9)
@@ -510,7 +510,7 @@ def gerar_pdf_orcamento(orcamento, itens):
                 italico_rotulo="TOTAL",
             )
 
-            _desenhar_garantia_e_rodape(c, y)
+            _desenhar_garantia_e_rodape(c, y, orcamento["validade_dias"])
 
         c.showPage()
 
