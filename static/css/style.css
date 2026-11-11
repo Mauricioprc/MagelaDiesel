@@ -1,0 +1,334 @@
+:root {
+    --azul: #0B2D8F;
+    --bg: #F4F5F7;
+    --texto: #14181F;
+    --cinza-texto: #5B6472;
+    --borda: #8A94A3;
+    --borda-clara: #E1E4EA;
+    --verde: #0F7A3E;
+    --vermelho: #B3261E;
+    --fonte: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--fonte);
+    background: var(--bg);
+    color: var(--texto);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+button {
+    font-family: inherit;
+}
+
+.tela {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Login */
+.tela-login {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 36px;
+    padding: 32px 24px;
+    max-width: 420px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.login-topo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.login-logo {
+    width: 104px;
+    height: 98px;
+    object-fit: contain;
+}
+
+.login-topo h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 800;
+    color: var(--azul);
+}
+
+.login-topo p {
+    margin: 0;
+    font-size: 17px;
+    color: var(--cinza-texto);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.campo label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #3B4351;
+}
+
+.campo input,
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+input[type="search"] {
+    width: 100%;
+    height: 56px;
+    padding: 0 16px;
+    font-size: 18px;
+    font-family: inherit;
+    border: 1.5px solid var(--borda);
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: var(--texto);
+}
+
+.botao {
+    height: 60px;
+    border-radius: 12px;
+    border: 0;
+    font-size: 19px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.botao-primario {
+    margin-top: 6px;
+    background: var(--azul);
+    color: #FFFFFF;
+}
+
+/* Topo (header) comum */
+.topo {
+    height: 64px;
+    flex: 0 0 64px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--borda-clara);
+}
+
+.topo h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.topo-marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.topo-logo {
+    width: 40px;
+    height: 38px;
+    object-fit: contain;
+}
+
+.topo-marca h1 {
+    color: var(--azul);
+}
+
+.botao-voltar {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 48px;
+}
+
+.link-botao {
+    min-width: 56px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--azul);
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+/* Home */
+.home-conteudo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px;
+}
+
+.quadro {
+    flex: 1;
+    box-sizing: border-box;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    text-align: center;
+    padding: 16px;
+    width: 100%;
+}
+
+.quadro-solido {
+    background: var(--azul);
+    color: #FFFFFF;
+    border: 0;
+}
+
+.quadro-contorno {
+    background: #FFFFFF;
+    border: 3px solid var(--azul);
+    color: var(--azul);
+}
+
+.quadro-desabilitado {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.quadro-texto {
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 800;
+}
+
+/* Lista */
+.lista-conteudo {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.busca {
+    height: 56px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 16px;
+    background: #FFFFFF;
+    border: 1.5px solid var(--borda);
+    border-radius: 12px;
+    color: var(--cinza-texto);
+}
+
+.busca input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 17px;
+    color: var(--texto);
+    height: auto;
+}
+
+.cartoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cartao {
+    display: block;
+    background: #FFFFFF;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 2px rgba(20, 24, 31, 0.12);
+}
+
+.cartao-linha-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.cartao-nome {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.cartao-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--azul);
+}
+
+.cartao-sub {
+    margin-top: 4px;
+    font-size: 15px;
+    color: var(--cinza-texto);
+}
+
+.texto-vazio {
+    text-align: center;
+    color: var(--cinza-texto);
+    font-size: 16px;
+    margin-top: 24px;
+}
+
+/* Mensagens */
+.flash-area {
+    max-width: 420px;
+    margin: 12px auto 0;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flash {
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+.flash-erro {
+    background: #FDECEA;
+    color: var(--vermelho);
+    border: 1px solid var(--vermelho);
+}

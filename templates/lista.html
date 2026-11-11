@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Orçamentos antigos{% endblock %}
+{% block conteudo %}
+<div class="tela">
+    <header class="topo">
+        <a href="{{ url_for('main.home') }}" aria-label="Voltar ao início" class="botao-voltar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </a>
+        <h1>Orçamentos antigos</h1>
+    </header>
+    <main class="lista-conteudo">
+        <form method="get" class="busca">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input type="search" name="q" value="{{ busca }}" aria-label="Buscar orçamento" placeholder="Nome, telefone, cidade ou veículo">
+        </form>
+
+        {% if orcamentos %}
+        <div class="cartoes">
+            {% for o in orcamentos %}
+            <a href="#" class="cartao">
+                <div class="cartao-linha-topo">
+                    <span class="cartao-nome">{{ o.cliente_nome }}</span>
+                    <span class="cartao-total">R$ {{ o.total_formatado }}</span>
+                </div>
+                <div class="cartao-sub">{{ o.veiculo or "—" }} · {{ o.cidade or "—" }}</div>
+                <div class="cartao-sub">{{ o.data }}</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% elif busca %}
+        <p class="texto-vazio">Nenhum orçamento encontrado para "{{ busca }}".</p>
+        {% else %}
+        <p class="texto-vazio">Nenhum orçamento salvo ainda.</p>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block conteudo %}
+<div class="tela-login">
+    <div class="login-topo">
+        <img src="{{ url_for('static', filename='img/LogoMD.png') }}" alt="Logo MD Magela Diesel" class="login-logo">
+        <h1>MD Magela Diesel</h1>
+        <p>Orçamentos de bombas e bicos injetores</p>
+    </div>
+    <form method="post" class="login-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="campo">
+            <label for="usuario">Usuário</label>
+            <input id="usuario" name="usuario" type="text" autocomplete="username" required autofocus>
+        </div>
+        <div class="campo">
+            <label for="senha">Senha</label>
+            <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="botao botao-primario">Entrar</button>
+    </form>
+</div>
+{% endblock %}
