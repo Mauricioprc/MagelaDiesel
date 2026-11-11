@@ -2,7 +2,10 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()  # lê o arquivo .env (se existir) antes de ler qualquer config
+# Caminho explícito (em vez de load_dotenv() sem argumento): o WSGI do
+# PythonAnywhere roda o app de um jeito que a detecção automática do
+# diretório não encontra o .env ao lado deste arquivo.
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 from flask import Flask
 
