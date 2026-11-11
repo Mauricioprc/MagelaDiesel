@@ -174,6 +174,10 @@ input[type="search"] {
     flex: 0 0 48px;
 }
 
+.link-botao[hidden] {
+    display: none;
+}
+
 .link-botao {
     min-width: 56px;
     height: 48px;
@@ -520,6 +524,51 @@ input[type="search"] {
 .linha-subtotal span:last-child {
     font-size: 18px;
     font-weight: 700;
+}
+
+/* Copiar itens de veículo já atendido */
+.veiculo-copia {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: -4px;
+}
+
+.veiculo-copia[hidden] {
+    display: none;
+}
+
+.veiculo-copia-titulo {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cinza-texto);
+}
+
+.veiculo-copia-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.veiculo-copia-item {
+    text-align: left;
+    background: #FFFFFF;
+    border: 1.5px solid var(--borda);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.veiculo-copia-item-veiculo {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.veiculo-copia-item-sub {
+    font-size: 13px;
+    color: var(--cinza-texto);
 }
 
 /* Bomba */

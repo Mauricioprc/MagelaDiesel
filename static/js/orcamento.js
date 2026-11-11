@@ -117,6 +117,11 @@
             }
         });
         linha.querySelector(".botao-remover-item").addEventListener("click", function () {
+            var descricao = linha.querySelector(".campo-descricao").value.trim();
+            var preco = linha.querySelector(".campo-preco").value.trim();
+            if ((descricao || preco) && !window.confirm("Remover este item?")) {
+                return;
+            }
             linha.remove();
             recalcularTotais();
             agendarRascunho();
@@ -157,6 +162,139 @@
         aplicarMascaraQuantidade(document.getElementById("bomba_quantidade"));
         aplicarMascaraDinheiro(document.getElementById("bomba_preco"));
         document.getElementById("bomba_descricao").addEventListener("input", agendarRascunho);
+    }
+
+    function inicializarClienteAutofill() {
+        var nomeInput = document.getElementById("nome");
+        var telInput = document.getElementById("tel");
+        var cidadeInput = document.getElementById("cidade");
+
+        nomeInput.addEventListener("change", function () {
+            var clientes = window.SUGESTOES_CLIENTES || {};
+            var dados = clientes[nomeInput.value.trim()];
+            if (!dados) {
+                return;
+            }
+            if (!telInput.value.trim() && dados.telefone) {
+                telInput.value = dados.telefone;
+            }
+            if (!cidadeInput.value.trim() && dados.cidade) {
+                cidadeInput.value = dados.cidade;
+            }
+            agendarRascunho();
+        });
+    }
+
+    function escaparHtml(texto) {
+        var div = document.createElement("div");
+        div.textContent = texto || "";
+        return div.innerHTML;
+    }
+
+    var VEICULO_COPIA_PASSO = 5;
+    var resultadosVeiculoCopia = [];
+    var quantidadeExibidaVeiculoCopia = VEICULO_COPIA_PASSO;
+    var temporizadorVeiculoCopia = null;
+
+    function itensContainerEstaVazio() {
+        var vazio = true;
+        document.querySelectorAll("#itens .campo-descricao").forEach(function (campo) {
+            if (campo.value.trim()) {
+                vazio = false;
+            }
+        });
+        return vazio;
+    }
+
+    function copiarItensDoResultado(resultado) {
+        if (!itensContainerEstaVazio() && !window.confirm("Isso substitui os itens já digitados. Continuar?")) {
+            return;
+        }
+
+        var container = document.getElementById("itens");
+        container.innerHTML = "";
+        var modelo = document.getElementById("modelo-item");
+        resultado.itens.forEach(function (item) {
+            var fragmento = modelo.content.cloneNode(true);
+            var linha = fragmento.querySelector(".item-linha");
+            linha.querySelector(".campo-descricao").value = item.descricao || "";
+            linha.querySelector(".campo-quantidade").value = item.quantidade || "1";
+            linha.querySelector(".campo-preco").value = item.preco_formatado || "";
+            container.appendChild(fragmento);
+        });
+        document.querySelectorAll("#itens .item-linha").forEach(aplicarMascarasNaLinha);
+        recalcularTotais();
+        agendarRascunho();
+
+        resultadosVeiculoCopia = [];
+        renderizarVeiculoCopia();
+    }
+
+    function renderizarVeiculoCopia() {
+        var container = document.getElementById("veiculo-copia");
+        var lista = document.getElementById("veiculo-copia-lista");
+        var botaoMais = document.getElementById("veiculo-copia-mais");
+
+        if (!resultadosVeiculoCopia.length) {
+            container.hidden = true;
+            lista.innerHTML = "";
+            return;
+        }
+
+        container.hidden = false;
+        lista.innerHTML = "";
+        resultadosVeiculoCopia.slice(0, quantidadeExibidaVeiculoCopia).forEach(function (resultado) {
+            var botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "veiculo-copia-item";
+            botao.innerHTML =
+                '<div class="veiculo-copia-item-veiculo">' + escaparHtml(resultado.veiculo) + "</div>" +
+                '<div class="veiculo-copia-item-sub">' + escaparHtml(resultado.cliente_nome) + " · " + escaparHtml(resultado.data_formatada) + "</div>";
+            botao.addEventListener("click", function () {
+                copiarItensDoResultado(resultado);
+            });
+            lista.appendChild(botao);
+        });
+
+        botaoMais.hidden = quantidadeExibidaVeiculoCopia >= resultadosVeiculoCopia.length;
+    }
+
+    function buscarVeiculoCopia() {
+        var veiculoInput = document.getElementById("veiculo");
+        var texto = veiculoInput.value.trim();
+        if (texto.length < 2 || !window.URL_BUSCAR_POR_VEICULO) {
+            resultadosVeiculoCopia = [];
+            renderizarVeiculoCopia();
+            return;
+        }
+
+        var idInput = document.getElementById("orcamento-id");
+        var excluirId = idInput ? idInput.value : "";
+        var url = window.URL_BUSCAR_POR_VEICULO + "?veiculo=" + encodeURIComponent(texto) +
+            (excluirId ? "&excluir_id=" + encodeURIComponent(excluirId) : "");
+
+        fetch(url)
+            .then(function (resposta) { return resposta.json(); })
+            .then(function (dados) {
+                resultadosVeiculoCopia = dados.resultados || [];
+                quantidadeExibidaVeiculoCopia = VEICULO_COPIA_PASSO;
+                renderizarVeiculoCopia();
+            })
+            .catch(function () {
+                // falha de rede: só não mostra a sugestão, o resto do formulário segue normal.
+            });
+    }
+
+    function inicializarVeiculoCopia() {
+        var veiculoInput = document.getElementById("veiculo");
+        veiculoInput.addEventListener("input", function () {
+            window.clearTimeout(temporizadorVeiculoCopia);
+            temporizadorVeiculoCopia = window.setTimeout(buscarVeiculoCopia, 350);
+        });
+        document.getElementById("veiculo-copia-mais").addEventListener("click", function () {
+            quantidadeExibidaVeiculoCopia += VEICULO_COPIA_PASSO;
+            renderizarVeiculoCopia();
+        });
     }
 
     function coletarItens() {
@@ -200,7 +338,9 @@
 
     function salvarRascunho() {
         try {
-            window.localStorage.setItem(chaveRascunho(), JSON.stringify(coletarRascunho()));
+            var dados = coletarRascunho();
+            dados.salvoEm = Date.now();
+            window.localStorage.setItem(chaveRascunho(), JSON.stringify(dados));
             mostrarIndicadorRascunho();
         } catch (erro) {
             // localStorage indisponível (modo privado, por exemplo): ignora.
@@ -228,6 +368,31 @@
             dados = JSON.parse(bruto);
         } catch (erro) {
             return;
+        }
+
+        // Pra orçamento novo, a chave do rascunho não é por cliente — então,
+        // se já tem algo digitado, confirma antes de restaurar (senão o
+        // rascunho de um cliente anterior reaparece sozinho num orçamento
+        // de outro cliente).
+        var ehNovo = !document.getElementById("orcamento-id").value;
+        var temConteudo = Boolean(
+            (dados.nome && dados.nome.trim()) ||
+            (dados.itens || []).some(function (item) {
+                return item.descricao && item.descricao.trim();
+            })
+        );
+        if (ehNovo && temConteudo) {
+            var quando = dados.salvoEm
+                ? new Date(dados.salvoEm).toLocaleString("pt-BR")
+                : "";
+            var mensagem = "Encontramos um rascunho não salvo" +
+                (dados.nome ? ' de "' + dados.nome + '"' : "") +
+                (quando ? " (" + quando + ")" : "") +
+                ". Continuar esse rascunho?";
+            if (!window.confirm(mensagem)) {
+                limparRascunho();
+                return;
+            }
         }
 
         document.getElementById("nome").value = dados.nome || "";
@@ -279,6 +444,8 @@
     document.addEventListener("DOMContentLoaded", function () {
         inicializarItens();
         inicializarBomba();
+        inicializarClienteAutofill();
+        inicializarVeiculoCopia();
         restaurarRascunho();
         recalcularTotais();
 

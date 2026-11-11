@@ -80,6 +80,46 @@ def _buscar_sugestoes_itens():
     return {linha["descricao"]: linha["preco_centavos"] for linha in linhas}
 
 
+def _buscar_sugestoes_clientes():
+    """Nome -> último telefone/cidade usados por esse cliente, pra preencher
+    o resto do formulário quando o usuário escolhe um nome já conhecido.
+    """
+    db = get_db()
+    linhas = db.execute(
+        """
+        SELECT cliente_nome, telefone, cidade
+        FROM (
+            SELECT cliente_nome, telefone, cidade,
+                   ROW_NUMBER() OVER (PARTITION BY cliente_nome ORDER BY id DESC) AS rn
+            FROM orcamentos
+        )
+        WHERE rn = 1
+        ORDER BY cliente_nome COLLATE NOCASE
+        LIMIT 300
+        """
+    ).fetchall()
+    return {
+        linha["cliente_nome"]: {
+            "telefone": linha["telefone"] or "",
+            "cidade": linha["cidade"] or "",
+        }
+        for linha in linhas
+    }
+
+
+def _buscar_sugestoes_veiculos():
+    db = get_db()
+    linhas = db.execute(
+        """
+        SELECT DISTINCT veiculo FROM orcamentos
+        WHERE veiculo IS NOT NULL AND veiculo != ''
+        ORDER BY veiculo COLLATE NOCASE
+        LIMIT 300
+        """
+    ).fetchall()
+    return [linha["veiculo"] for linha in linhas]
+
+
 def _buscar_orcamento_ou_404(orcamento_id):
     orcamento = get_db().execute(
         "SELECT * FROM orcamentos WHERE id = ?", (orcamento_id,)
@@ -165,7 +205,117 @@ def _montar_contexto_formulario(modo, orcamento=None, itens=None):
         "subtotal_formatado": centavos_para_reais(subtotal),
         "total_formatado": centavos_para_reais(subtotal + bomba_total),
         "sugestoes": _buscar_sugestoes_itens(),
+        "sugestoes_clientes": _buscar_sugestoes_clientes(),
+        "sugestoes_veiculos": _buscar_sugestoes_veiculos(),
     }
+
+
+def _contexto_a_partir_do_form(modo, orcamento_id, form):
+    """Reconstrói o contexto do formulário a partir do que o usuário acabou
+    de digitar (não do banco), pra re-exibir a tela de erro sem apagar nada
+    que ele já tinha preenchido.
+    """
+    bomba_incluida = form.get("bomba_incluida") == "1"
+    bomba_preco_centavos = string_para_centavos(form.get("bomba_preco", ""))
+    bomba_quantidade = _quantidade_segura(form.get("bomba_quantidade", "1"))
+
+    orcamento = {
+        "id": orcamento_id,
+        "cliente_nome": form.get("nome", "").strip(),
+        "telefone": form.get("telefone", "").strip(),
+        "cidade": form.get("cidade", "").strip(),
+        "veiculo": form.get("veiculo", "").strip(),
+        "data": form.get("data", "").strip() or date.today().isoformat(),
+        "bomba_incluida": bomba_incluida,
+        "bomba_descricao": form.get("bomba_descricao", "").strip(),
+        "bomba_quantidade": bomba_quantidade,
+        "bomba_preco_centavos": bomba_preco_centavos,
+        "bomba_preco_formatado": centavos_para_reais(bomba_preco_centavos),
+    }
+    bomba_total = bomba_quantidade * bomba_preco_centavos if bomba_incluida else 0
+    orcamento["bomba_total_formatado"] = centavos_para_reais(bomba_total)
+
+    subtotal = 0
+    itens_contexto = []
+    for descricao, quantidade_str, preco_str in zip(
+        form.getlist("item_descricao"),
+        form.getlist("item_quantidade"),
+        form.getlist("item_preco"),
+    ):
+        quantidade = _quantidade_segura(quantidade_str)
+        preco_centavos = string_para_centavos(preco_str)
+        subtotal += quantidade * preco_centavos
+        itens_contexto.append(
+            {
+                "descricao": descricao,
+                "quantidade": quantidade,
+                "preco_formatado": centavos_para_reais(preco_centavos),
+                "total_formatado": centavos_para_reais(quantidade * preco_centavos),
+            }
+        )
+    if not itens_contexto:
+        itens_contexto = [{"descricao": "", "quantidade": 1, "preco_formatado": ""}]
+
+    return {
+        "modo": modo,
+        "orcamento": orcamento,
+        "itens": itens_contexto,
+        "subtotal_formatado": centavos_para_reais(subtotal),
+        "total_formatado": centavos_para_reais(subtotal + bomba_total),
+        "sugestoes": _buscar_sugestoes_itens(),
+        "sugestoes_clientes": _buscar_sugestoes_clientes(),
+        "sugestoes_veiculos": _buscar_sugestoes_veiculos(),
+    }
+
+
+@bp.route("/buscar-por-veiculo")
+@login_required
+def buscar_por_veiculo():
+    """Orçamentos antigos cujo veículo bate com o texto digitado, de
+    qualquer cliente (o mesmo modelo de trator costuma levar os mesmos
+    itens, não importa de quem é) — pra oferecer "copiar itens de algum
+    abaixo" enquanto o usuário digita o veículo.
+    """
+    veiculo = request.args.get("veiculo", "").strip()
+    excluir_id = request.args.get("excluir_id", type=int)
+    if len(veiculo) < 2:
+        return jsonify({"resultados": []})
+
+    sql = """
+        SELECT id, veiculo, cliente_nome, data
+        FROM orcamentos
+        WHERE veiculo LIKE '%' || ? || '%' COLLATE NOCASE
+    """
+    params = [veiculo]
+    if excluir_id:
+        sql += " AND id != ?"
+        params.append(excluir_id)
+    sql += " ORDER BY id DESC LIMIT 20"
+
+    linhas = get_db().execute(sql, params).fetchall()
+    resultados = []
+    for linha in linhas:
+        itens = _buscar_itens(linha["id"])
+        if not itens:
+            continue
+        resultados.append(
+            {
+                "id": linha["id"],
+                "veiculo": linha["veiculo"],
+                "cliente_nome": linha["cliente_nome"],
+                "data_formatada": _data_br(linha["data"]),
+                "itens": [
+                    {
+                        "descricao": item["descricao"],
+                        "quantidade": item["quantidade"],
+                        "preco_formatado": centavos_para_reais(item["preco_centavos"]),
+                    }
+                    for item in itens
+                ],
+            }
+        )
+
+    return jsonify({"resultados": resultados})
 
 
 @bp.route("")
@@ -385,12 +535,10 @@ def _salvar(orcamento_id):
 
     cliente_nome = form.get("nome", "").strip()
     if not cliente_nome:
-        contexto = _montar_contexto_formulario(
-            "editar" if orcamento_id else "novo",
-            orcamento=(
-                _buscar_orcamento_ou_404(orcamento_id) if orcamento_id else None
-            ),
-            itens=(_buscar_itens(orcamento_id) if orcamento_id else None),
+        if orcamento_id:
+            _buscar_orcamento_ou_404(orcamento_id)  # 404 se o id não existir
+        contexto = _contexto_a_partir_do_form(
+            "editar" if orcamento_id else "novo", orcamento_id, form
         )
         contexto["erro"] = "Informe o nome do cliente."
         return render_template("formulario.html", **contexto), 400

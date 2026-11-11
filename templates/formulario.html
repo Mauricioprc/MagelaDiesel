@@ -26,7 +26,7 @@
             <h2>Cliente</h2>
             <div class="campo">
                 <label for="nome">Nome</label>
-                <input id="nome" name="nome" type="text" value="{{ orcamento.cliente_nome }}" required>
+                <input id="nome" name="nome" type="text" value="{{ orcamento.cliente_nome }}" list="lista-sugestoes-clientes" required>
             </div>
             <div class="campo">
                 <label for="tel">Telefone</label>
@@ -38,7 +38,12 @@
             </div>
             <div class="campo">
                 <label for="veiculo">Veículo (trator e modelo)</label>
-                <input id="veiculo" name="veiculo" type="text" value="{{ orcamento.veiculo }}">
+                <input id="veiculo" name="veiculo" type="text" value="{{ orcamento.veiculo }}" list="lista-sugestoes-veiculos" autocomplete="off">
+            </div>
+            <div id="veiculo-copia" class="veiculo-copia" hidden>
+                <p class="veiculo-copia-titulo">Deseja copiar itens de algum abaixo:</p>
+                <div id="veiculo-copia-lista" class="veiculo-copia-lista"></div>
+                <button type="button" id="veiculo-copia-mais" class="link-botao" hidden>Mostrar mais</button>
             </div>
             <div class="campo campo-data">
                 <label for="data">Data</label>
@@ -157,6 +162,20 @@
     <option value="{{ desc }}"></option>
     {% endfor %}
 </datalist>
-<script>window.SUGESTOES_ITENS = {{ sugestoes | tojson }};</script>
+<datalist id="lista-sugestoes-clientes">
+    {% for nome in sugestoes_clientes.keys() %}
+    <option value="{{ nome }}"></option>
+    {% endfor %}
+</datalist>
+<datalist id="lista-sugestoes-veiculos">
+    {% for veic in sugestoes_veiculos %}
+    <option value="{{ veic }}"></option>
+    {% endfor %}
+</datalist>
+<script>
+window.SUGESTOES_ITENS = {{ sugestoes | tojson }};
+window.SUGESTOES_CLIENTES = {{ sugestoes_clientes | tojson }};
+window.URL_BUSCAR_POR_VEICULO = {{ url_for('orcamentos.buscar_por_veiculo') | tojson }};
+</script>
 <script src="{{ url_for('static', filename='js/orcamento.js') }}"></script>
 {% endblock %}
