@@ -366,6 +366,13 @@ input[type="search"] {
 }
 
 /* Formulário de orçamento */
+.form-layout {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .form-orcamento {
     flex: 1;
     display: flex;
@@ -731,6 +738,19 @@ input[type="search"] {
     padding: 14px 16px;
 }
 
+.detalhe-grade {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.detalhe-coluna-pdf,
+.detalhe-coluna-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
 .detalhe-nota {
     font-size: 14px;
     line-height: 20px;
@@ -957,4 +977,93 @@ input[type="search"] {
 
 .form-backup {
     margin-top: 12px;
+}
+
+/* Coluna de pré-visualização do PDF no formulário: escondida no celular
+   (só existe pra telas largas, no @media abaixo). */
+.form-preview-coluna {
+    display: none;
+}
+
+/* Layout de PC (telas largas): as telas mobile-first acima continuam
+   valendo até 900px; a partir daí, centraliza e aproveita a largura
+   extra em vez de estirar os blocos até a borda da tela. */
+@media (min-width: 900px) {
+    .home-conteudo {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        gap: 32px;
+        padding: 40px;
+    }
+
+    .quadro {
+        flex: 0 0 300px;
+        height: 300px;
+    }
+
+    /* Formulário: form rolável numa coluna com largura fixa, e a
+       pré-visualização do PDF ao lado, atualizando conforme digita. */
+    .form-layout {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: row;
+        gap: 24px;
+        padding: 24px 24px 0;
+        align-items: stretch;
+    }
+
+    .form-orcamento {
+        flex: 0 0 460px;
+        max-width: 460px;
+    }
+
+    .form-rolavel {
+        padding: 0 0 24px;
+    }
+
+    .form-preview-coluna {
+        display: flex;
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 24px;
+    }
+
+    .form-preview-coluna .pdf-preview-wrap {
+        width: min(100%, 560px);
+        max-height: 100%;
+    }
+
+    /* Detalhe do orçamento: ações/botões numa coluna e o PDF na outra. */
+    .detalhe-conteudo {
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+    }
+
+    .detalhe-grade {
+        flex-direction: row-reverse;
+        align-items: flex-start;
+        gap: 24px;
+    }
+
+    .detalhe-coluna-pdf {
+        flex: 1 1 420px;
+    }
+
+    .detalhe-coluna-acoes {
+        flex: 0 0 380px;
+    }
+
+    /* Lista de orçamentos antigos: centraliza em vez de esticar os
+       cartões até a borda da tela. */
+    .lista-conteudo {
+        max-width: 640px;
+        margin: 0 auto;
+        width: 100%;
+    }
 }

@@ -60,6 +60,46 @@ def test_pdf_de_orcamento_inexistente_da_404(client):
     assert resposta.status_code == 404
 
 
+def test_pre_visualizar_exige_login(client):
+    resposta = client.post("/orcamentos/pre-visualizar", data={})
+    assert resposta.status_code == 302
+    assert "/login" in resposta.headers["Location"]
+
+
+def test_pre_visualizar_gera_pdf_sem_salvar_nada(client):
+    login(client)
+    token = _csrf(client, "/orcamentos/novo")
+
+    resposta = client.post(
+        "/orcamentos/pre-visualizar",
+        data={
+            "csrf_token": token,
+            "nome": "Cliente Rascunho",
+            "data": "2026-07-21",
+            "item_descricao": "Bico injetor",
+            "item_quantidade": "2",
+            "item_preco": "50,00",
+            "bomba_incluida": "1",
+            "bomba_descricao": "Desmontar, montar e regular bomba injetora na bancada de teste",
+            "bomba_quantidade": "1",
+            "bomba_preco": "1.100,00",
+        },
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.mimetype == "application/pdf"
+    assert resposta.data.startswith(b"%PDF")
+
+    resposta_lista = client.get("/orcamentos")
+    assert "Cliente Rascunho" not in resposta_lista.get_data(as_text=True)
+
+
+def test_pre_visualizar_sem_csrf_da_400(client):
+    login(client)
+    resposta = client.post("/orcamentos/pre-visualizar", data={"nome": "X"})
+    assert resposta.status_code == 400
+
+
 class _Linha(dict):
     def __getitem__(self, chave):
         return dict.__getitem__(self, chave)

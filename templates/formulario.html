@@ -13,6 +13,7 @@
         </span>
     </header>
 
+    <div class="form-layout">
     <form id="form-orcamento" method="post" class="form-orcamento" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" id="orcamento-id" value="{{ orcamento.id or '' }}">
@@ -155,6 +156,13 @@
             <button type="submit" class="botao botao-primario barra-botao-salvar">Salvar</button>
         </div>
     </form>
+
+    <aside class="form-preview-coluna">
+        <div class="pdf-preview-wrap">
+            <iframe id="pdf-preview-form" class="pdf-preview" title="Pré-visualização do orçamento"></iframe>
+        </div>
+    </aside>
+    </div>
 </div>
 
 <datalist id="lista-sugestoes">
@@ -176,6 +184,7 @@
 window.SUGESTOES_ITENS = {{ sugestoes | tojson }};
 window.SUGESTOES_CLIENTES = {{ sugestoes_clientes | tojson }};
 window.URL_BUSCAR_POR_VEICULO = {{ url_for('orcamentos.buscar_por_veiculo') | tojson }};
+window.URL_PRE_VISUALIZAR = {{ url_for('orcamentos.pre_visualizar') | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/orcamento.js') }}"></script>
 {% endblock %}

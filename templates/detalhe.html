@@ -25,38 +25,44 @@
         </div>
         {% endif %}
 
-        <div class="pdf-preview-wrap">
-            <iframe
-                src="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
-                class="pdf-preview"
-                title="Pré-visualização do orçamento em PDF"
-            ></iframe>
-        </div>
-        <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="pdf-preview-abrir">
-            Não conseguiu ver o orçamento acima? Toque aqui pra abrir o PDF.
-        </a>
+        <div class="detalhe-grade">
+            <div class="detalhe-coluna-pdf">
+                <div class="pdf-preview-wrap">
+                    <iframe
+                        src="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
+                        class="pdf-preview"
+                        title="Pré-visualização do orçamento em PDF"
+                    ></iframe>
+                </div>
+                <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="pdf-preview-abrir">
+                    Não conseguiu ver o orçamento acima? Toque aqui pra abrir o PDF.
+                </a>
+            </div>
 
-        <div class="botoes-acao">
-            <button
-                type="button"
-                id="botao-whatsapp"
-                class="botao botao-whatsapp"
-                data-url-pdf="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
-                data-url-marcar-enviado="{{ url_for('orcamentos.marcar_enviado', orcamento_id=orcamento.id) }}"
-                data-csrf="{{ csrf_token() }}"
-                data-nome-arquivo="{{ orcamento.nome_arquivo_pdf }}"
-            >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/></svg>
-                Enviar por WhatsApp
-            </button>
-            <p id="whatsapp-status" class="texto-status" hidden></p>
-            <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="botao botao-contorno">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"/></svg>
-                Imprimir ou baixar PDF
-            </a>
-            <div class="botoes-linha">
-                <a href="{{ url_for('orcamentos.editar', orcamento_id=orcamento.id) }}" class="botao botao-secundario">Editar</a>
-                <button type="button" id="botao-excluir" class="botao botao-perigo">Excluir</button>
+            <div class="detalhe-coluna-acoes">
+                <div class="botoes-acao">
+                    <button
+                        type="button"
+                        id="botao-whatsapp"
+                        class="botao botao-whatsapp"
+                        data-url-pdf="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
+                        data-url-marcar-enviado="{{ url_for('orcamentos.marcar_enviado', orcamento_id=orcamento.id) }}"
+                        data-csrf="{{ csrf_token() }}"
+                        data-nome-arquivo="{{ orcamento.nome_arquivo_pdf }}"
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/></svg>
+                        Enviar por WhatsApp
+                    </button>
+                    <p id="whatsapp-status" class="texto-status" hidden></p>
+                    <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="botao botao-contorno">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"/></svg>
+                        Imprimir ou baixar PDF
+                    </a>
+                    <div class="botoes-linha">
+                        <a href="{{ url_for('orcamentos.editar', orcamento_id=orcamento.id) }}" class="botao botao-secundario">Editar</a>
+                        <button type="button" id="botao-excluir" class="botao botao-perigo">Excluir</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

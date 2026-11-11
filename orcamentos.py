@@ -268,6 +268,56 @@ def _contexto_a_partir_do_form(modo, orcamento_id, form):
     }
 
 
+def _dados_pdf_a_partir_do_form(form):
+    """Monta (orcamento, itens) a partir do form atual, só pra gerar um PDF
+    de pré-visualização — nada disso é salvo no banco.
+    """
+    itens = []
+    for descricao, quantidade_str, preco_str in zip(
+        form.getlist("item_descricao"),
+        form.getlist("item_quantidade"),
+        form.getlist("item_preco"),
+    ):
+        descricao = descricao.strip()
+        if not descricao:
+            continue
+        itens.append(
+            {
+                "descricao": descricao,
+                "quantidade": _quantidade_segura(quantidade_str),
+                "preco_centavos": string_para_centavos(preco_str),
+            }
+        )
+
+    orcamento = {
+        "cliente_nome": form.get("nome", "").strip(),
+        "telefone": form.get("telefone", "").strip(),
+        "cidade": form.get("cidade", "").strip(),
+        "veiculo": form.get("veiculo", "").strip(),
+        "data": form.get("data", "").strip() or date.today().isoformat(),
+        "bomba_incluida": form.get("bomba_incluida") == "1",
+        "bomba_descricao": form.get("bomba_descricao", "").strip(),
+        "bomba_quantidade": _quantidade_segura(form.get("bomba_quantidade", "1")),
+        "bomba_preco_centavos": string_para_centavos(form.get("bomba_preco", "")),
+        "validade_dias": int(
+            obter_configuracao("validade_dias_padrao", VALIDADE_DIAS_PADRAO)
+        ),
+    }
+    return orcamento, itens
+
+
+@bp.route("/pre-visualizar", methods=["POST"])
+@login_required
+def pre_visualizar():
+    """Gera o PDF do que está no formulário agora (sem salvar nada), pra
+    mostrar na coluna de pré-visualização da tela de PC.
+    """
+    validate_csrf_or_abort()
+    orcamento, itens = _dados_pdf_a_partir_do_form(request.form)
+    pdf_bytes = gerar_pdf_orcamento(orcamento, itens)
+    return Response(pdf_bytes, mimetype="application/pdf")
+
+
 @bp.route("/buscar-por-veiculo")
 @login_required
 def buscar_por_veiculo():

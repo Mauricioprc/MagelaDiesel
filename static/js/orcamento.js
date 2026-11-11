@@ -345,6 +345,44 @@
         } catch (erro) {
             // localStorage indisponível (modo privado, por exemplo): ignora.
         }
+        atualizarPreviewPdf();
+    }
+
+    // Pré-visualização do PDF ao lado do formulário: só existe em telas de
+    // PC (ver breakpoint em static/css/style.css); no celular o elemento
+    // nem aparece, então nem vale a pena gerar o PDF a cada edição.
+    var LARGURA_MINIMA_PREVIEW = "(min-width: 900px)";
+    var urlObjetoPreviewAtual = null;
+
+    function atualizarPreviewPdf() {
+        var iframe = document.getElementById("pdf-preview-form");
+        if (!iframe || !window.URL_PRE_VISUALIZAR) {
+            return;
+        }
+        if (!window.matchMedia(LARGURA_MINIMA_PREVIEW).matches) {
+            return;
+        }
+
+        var form = document.getElementById("form-orcamento");
+        fetch(window.URL_PRE_VISUALIZAR, { method: "POST", body: new FormData(form) })
+            .then(function (resposta) {
+                if (!resposta.ok) {
+                    throw new Error("Falha ao gerar a pré-visualização.");
+                }
+                return resposta.blob();
+            })
+            .then(function (blob) {
+                var novaUrl = URL.createObjectURL(blob);
+                iframe.src = novaUrl;
+                if (urlObjetoPreviewAtual) {
+                    URL.revokeObjectURL(urlObjetoPreviewAtual);
+                }
+                urlObjetoPreviewAtual = novaUrl;
+            })
+            .catch(function () {
+                // falha ao gerar a pré-visualização: ignora, o formulário
+                // continua funcionando normalmente sem ela.
+            });
     }
 
     var temporizadorRascunho = null;
@@ -448,6 +486,7 @@
         inicializarVeiculoCopia();
         restaurarRascunho();
         recalcularTotais();
+        atualizarPreviewPdf();
 
         ["nome", "tel", "cidade", "veiculo", "data"].forEach(function (id) {
             document.getElementById(id).addEventListener("input", agendarRascunho);
