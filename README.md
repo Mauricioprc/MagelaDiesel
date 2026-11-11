@@ -1,6 +1,6 @@
 # Sistema de Orçamentos — Magela Diesel
 
-Fases concluídas: estrutura/banco/login (1), formulário de orçamento (2), geração do PDF (3).
+Fases concluídas: estrutura/banco/login (1), formulário de orçamento (2), geração do PDF (3), WhatsApp/impressão (4).
 
 ## Rodando localmente
 
@@ -56,7 +56,7 @@ pytest
 - `db.py` — conexão SQLite e inicialização do schema (`schema.sql`).
 - `auth.py` — login, logout, limite de tentativas, decorator `login_required`.
 - `main.py` — tela Início.
-- `orcamentos.py` — lista (com busca), novo/editar/salvar/excluir, geração do PDF.
+- `orcamentos.py` — lista (com busca), novo/editar/salvar/excluir, geração do PDF, marcar como enviado (grava cópia em `pdf_enviados`).
 - `dinheiro.py` — conversão centavos ↔ string formatada.
 - `pdf.py` — monta o PDF do orçamento igual ao modelo de papel (cabeçalho, logos, tabela, regra de ajuste de fonte e paginação).
 - `csrf.py` — geração/validação de token CSRF.
@@ -67,5 +67,22 @@ pytest
 
 ## O que falta (próximas fases)
 
-- Fase 4: enviar por WhatsApp (Web Share API), cópia do PDF enviado (`pdf_enviados`), "editado em" só depois do envio.
 - Fase 5: backup, configurações e guia de deploy no PythonAnywhere.
+
+## WhatsApp e impressão (fase 4)
+
+- "Enviar por WhatsApp" usa a Web Share API (`navigator.share` com o arquivo
+  PDF) — funciona em Android/Chrome com HTTPS e toque do usuário. Em
+  navegadores sem suporte a compartilhar arquivo (como desktop), baixa o PDF
+  e orienta a anexar manualmente no WhatsApp.
+- Cada envio (compartilhado com sucesso ou baixado no fallback) grava uma
+  cópia do PDF em `pdf_enviados` com data/hora; o detalhe mostra "Enviado ao
+  cliente em..." e um link "Ver PDF enviado" pra essa cópia congelada
+  (não o PDF gerado na hora, que pode já ter mudado se o orçamento foi
+  editado depois).
+- "Editado em ..." só aparece se a edição foi **depois** do último envio —
+  editar antes de enviar não mostra nada, porque não há nada que o cliente
+  já tenha recebido pra ficar desatualizado.
+- **Ainda não testado em celular Android real** — só no navegador desktop
+  (onde cai no fallback de download). Antes de considerar pronto, testar o
+  compartilhamento de verdade num Android/Chrome com HTTPS.

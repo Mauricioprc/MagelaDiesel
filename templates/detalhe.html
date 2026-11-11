@@ -15,8 +15,18 @@
             <div class="linha-dado"><span>Cidade</span><span>{{ orcamento.cidade or "—" }}</span></div>
             <div class="linha-dado"><span>Veículo</span><span>{{ orcamento.veiculo or "—" }}</span></div>
             <div class="linha-dado"><span>Data</span><span>{{ orcamento.data_formatada }}</span></div>
-            {% if orcamento.editado_em %}
-            <div class="detalhe-nota">Editado em {{ orcamento.editado_em_formatado }}.</div>
+            {% if orcamento.enviado_em_formatado or orcamento.mostrar_editado_em %}
+            <div class="detalhe-nota">
+                {% if orcamento.enviado_em_formatado %}
+                <p>
+                    Enviado ao cliente em {{ orcamento.enviado_em_formatado }}.
+                    <a href="{{ url_for('orcamentos.pdf_enviado', orcamento_id=orcamento.id) }}" target="_blank">Ver PDF enviado</a>
+                </p>
+                {% endif %}
+                {% if orcamento.mostrar_editado_em %}
+                <p>Editado em {{ orcamento.editado_em_formatado }}.</p>
+                {% endif %}
+            </div>
             {% endif %}
         </div>
 
@@ -48,10 +58,19 @@
         </div>
 
         <div class="botoes-acao">
-            <button type="button" class="botao botao-whatsapp botao-desabilitado" disabled title="Disponível na fase 4">
+            <button
+                type="button"
+                id="botao-whatsapp"
+                class="botao botao-whatsapp"
+                data-url-pdf="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}"
+                data-url-marcar-enviado="{{ url_for('orcamentos.marcar_enviado', orcamento_id=orcamento.id) }}"
+                data-csrf="{{ csrf_token() }}"
+                data-nome-arquivo="{{ orcamento.nome_arquivo_pdf }}"
+            >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4 18-7z"/></svg>
                 Enviar por WhatsApp
             </button>
+            <p id="whatsapp-status" class="texto-status" hidden></p>
             <a href="{{ url_for('orcamentos.pdf', orcamento_id=orcamento.id) }}" target="_blank" class="botao botao-contorno">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9V3h12v6M6 18H4v-7h16v7h-2M6 14h12v7H6z"/></svg>
                 Imprimir ou baixar PDF

@@ -51,7 +51,7 @@ def test_pdf_gera_arquivo_valido(client):
     assert resposta.status_code == 200
     assert resposta.mimetype == "application/pdf"
     assert resposta.data.startswith(b"%PDF")
-    assert f"orcamento-{orcamento_id}.pdf" in resposta.headers["Content-Disposition"]
+    assert "orcamento-Lucas-MagelaDiesel.pdf" in resposta.headers["Content-Disposition"]
 
 
 def test_pdf_de_orcamento_inexistente_da_404(client):

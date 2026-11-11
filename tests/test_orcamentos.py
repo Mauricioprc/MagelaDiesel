@@ -1,9 +1,25 @@
 from conftest import _extrair_csrf, login
+from orcamentos import _nome_arquivo_pdf
 
 
 def _csrf(client, url):
     resposta = client.get(url)
     return _extrair_csrf(resposta.get_data(as_text=True))
+
+
+def test_nome_arquivo_pdf_remove_acentos_e_espacos():
+    assert _nome_arquivo_pdf("João Pereira") == "orcamento-Joao-Pereira-MagelaDiesel.pdf"
+
+
+def test_nome_arquivo_pdf_remove_caracteres_especiais():
+    assert (
+        _nome_arquivo_pdf("Fazenda Boa Vista & Cia.")
+        == "orcamento-Fazenda-Boa-Vista-Cia-MagelaDiesel.pdf"
+    )
+
+
+def test_nome_arquivo_pdf_nome_vazio_usa_padrao():
+    assert _nome_arquivo_pdf("") == "orcamento-cliente-MagelaDiesel.pdf"
 
 
 def test_pagina_novo_mostra_bomba_padrao(client):
@@ -109,7 +125,7 @@ def test_item_sem_descricao_e_ignorado(client):
     assert "10,00" in html
 
 
-def test_editar_orcamento_marca_editado_em(client):
+def test_editar_orcamento_sem_nunca_ter_sido_enviado_nao_mostra_editado_em(client):
     login(client)
     token = _csrf(client, "/orcamentos/novo")
     resposta = client.post(
@@ -145,7 +161,8 @@ def test_editar_orcamento_marca_editado_em(client):
     detalhe = client.get(url_detalhe)
     html = detalhe.get_data(as_text=True)
     assert "Carlos Alberto" in html
-    assert "Editado em" in html
+    # nunca foi enviado pro cliente, então não há "depois do envio" pra marcar
+    assert "Editado em" not in html
 
 
 def test_excluir_orcamento_some_da_lista(client):

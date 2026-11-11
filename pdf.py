@@ -152,7 +152,7 @@ def _altura_bloco_final(orcamento, modo, incluir_subtotal=True):
         altura += 3 * modo["linha"]  # pula 3 linhas antes do serviço padrão
         linha_bomba = _LinhaTabela(
             quantidade="01",
-            descricao=orcamento["bomba_descricao"],
+            descricao=(orcamento["bomba_descricao"] or "").upper(),
             unitario="",
             total="",
             modo=modo,
@@ -381,7 +381,7 @@ def _desenhar_linha(c, y, altura, valores, modo, negrito_total=False, italico_ro
 
 def _desenhar_garantia_e_rodape(c, y):
     c.setFont(FONTE_NEGRITO, 10)
-    c.drawString(MARGEM_X, y - 14, "Garantia de 90 dias por Defeito de Fábrica")
+    c.drawString(MARGEM_X, y - 14, "Garantia de 90 dias por defeito de fábrica")
 
     rodape_y = MARGEM_BASE
     c.setFont(FONTE_ITALICO, 9)
@@ -482,7 +482,7 @@ def gerar_pdf_orcamento(orcamento, itens):
 
                 linha_bomba = _LinhaTabela(
                     quantidade="01",
-                    descricao=orcamento["bomba_descricao"],
+                    descricao=(orcamento["bomba_descricao"] or "").upper(),
                     unitario=centavos_para_reais(orcamento["bomba_preco_centavos"]),
                     total=centavos_para_reais(bomba_total_centavos),
                     modo=modo,

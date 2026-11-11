@@ -678,6 +678,35 @@ input[type="search"] {
     color: var(--cinza-texto);
 }
 
+.detalhe-nota p {
+    margin: 0;
+}
+
+.detalhe-nota p + p {
+    margin-top: 4px;
+}
+
+.detalhe-nota a {
+    color: var(--azul);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.texto-status {
+    margin: -4px 0 0;
+    font-size: 14px;
+    text-align: center;
+    color: var(--cinza-texto);
+}
+
+.texto-status[hidden] {
+    display: none;
+}
+
+.texto-status.texto-status-erro {
+    color: var(--vermelho);
+}
+
 .linha-item {
     display: flex;
     justify-content: space-between;
@@ -752,11 +781,6 @@ input[type="search"] {
     color: var(--azul);
     gap: 10px;
     box-sizing: border-box;
-}
-
-.botao-desabilitado {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 .botoes-linha {

@@ -1,3 +1,5 @@
+import re
+import unicodedata
 from datetime import date, datetime
 
 from flask import (
@@ -5,6 +7,7 @@ from flask import (
     Response,
     abort,
     g,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -22,6 +25,16 @@ bp = Blueprint("orcamentos", __name__, url_prefix="/orcamentos")
 BOMBA_DESCRICAO_PADRAO = "Desmontar, montar e regular bomba injetora na bancada de teste"
 BOMBA_PRECO_PADRAO_CENTAVOS = 110000
 VALIDADE_DIAS_PADRAO = 15
+
+
+def _slug(texto):
+    texto = unicodedata.normalize("NFKD", texto or "").encode("ascii", "ignore").decode("ascii")
+    texto = re.sub(r"[^a-zA-Z0-9]+", "-", texto).strip("-")
+    return texto or "cliente"
+
+
+def _nome_arquivo_pdf(cliente_nome):
+    return f"orcamento-{_slug(cliente_nome)}-MagelaDiesel.pdf"
 
 
 def _quantidade_segura(texto):
@@ -81,6 +94,18 @@ def _buscar_itens(orcamento_id):
         "SELECT * FROM itens WHERE orcamento_id = ? ORDER BY ordem, id",
         (orcamento_id,),
     ).fetchall()
+
+
+def _buscar_ultimo_envio(orcamento_id):
+    return get_db().execute(
+        """
+        SELECT id, enviado_em FROM pdf_enviados
+        WHERE orcamento_id = ?
+        ORDER BY enviado_em DESC, id DESC
+        LIMIT 1
+        """,
+        (orcamento_id,),
+    ).fetchone()
 
 
 def _montar_contexto_formulario(modo, orcamento=None, itens=None):
@@ -214,13 +239,32 @@ def detalhe(orcamento_id):
         else 0
     )
 
+    ultimo_envio = _buscar_ultimo_envio(orcamento_id)
+
     contexto_orcamento = dict(orcamento)
     contexto_orcamento["data_formatada"] = _data_br(orcamento["data"])
-    contexto_orcamento["editado_em_formatado"] = _data_hora_br(orcamento["editado_em"])
     contexto_orcamento["bomba_preco_formatado"] = centavos_para_reais(
         orcamento["bomba_preco_centavos"]
     )
     contexto_orcamento["bomba_total_formatado"] = centavos_para_reais(bomba_total)
+    contexto_orcamento["nome_arquivo_pdf"] = _nome_arquivo_pdf(orcamento["cliente_nome"])
+
+    # "editado em" só importa pro cliente se o orçamento mudou DEPOIS de
+    # já ter sido enviado pra ele — sem envio nenhum ainda, editar é só
+    # ajustar o rascunho, não há nada que ele já recebeu pra ficar
+    # desatualizado.
+    editado_depois_do_envio = bool(
+        orcamento["editado_em"]
+        and ultimo_envio
+        and orcamento["editado_em"] > ultimo_envio["enviado_em"]
+    )
+    contexto_orcamento["mostrar_editado_em"] = editado_depois_do_envio
+    contexto_orcamento["editado_em_formatado"] = _data_hora_br(orcamento["editado_em"])
+
+    if ultimo_envio:
+        contexto_orcamento["enviado_em_formatado"] = _data_hora_br(
+            ultimo_envio["enviado_em"]
+        )
 
     itens_contexto = [
         {
@@ -251,7 +295,60 @@ def pdf(orcamento_id):
     pdf_bytes = gerar_pdf_orcamento(orcamento, itens)
     resposta = Response(pdf_bytes, mimetype="application/pdf")
     resposta.headers["Content-Disposition"] = (
-        f'inline; filename="orcamento-{orcamento_id}.pdf"'
+        f'inline; filename="{_nome_arquivo_pdf(orcamento["cliente_nome"])}"'
+    )
+    return resposta
+
+
+@bp.route("/<int:orcamento_id>/marcar-enviado", methods=["POST"])
+@login_required
+def marcar_enviado(orcamento_id):
+    """Gera o PDF de novo (nunca confia em bytes vindos do navegador) e
+    guarda essa cópia em pdf_enviados, com a data/hora de agora — é o
+    "enviei pro cliente" que a tela de detalhe mostra depois.
+    """
+    validate_csrf_or_abort()
+    orcamento = _buscar_orcamento_ou_404(orcamento_id)
+    itens = _buscar_itens(orcamento_id)
+    pdf_bytes = gerar_pdf_orcamento(orcamento, itens)
+
+    agora = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    db = get_db()
+    db.execute(
+        "INSERT INTO pdf_enviados (orcamento_id, enviado_em, arquivo) VALUES (?, ?, ?)",
+        (orcamento_id, agora, pdf_bytes),
+    )
+    db.commit()
+
+    return jsonify(
+        {
+            "enviado_em_formatado": _data_hora_br(agora),
+            "url_pdf_enviado": url_for(
+                "orcamentos.pdf_enviado", orcamento_id=orcamento_id
+            ),
+        }
+    )
+
+
+@bp.route("/<int:orcamento_id>/pdf-enviado")
+@login_required
+def pdf_enviado(orcamento_id):
+    orcamento = _buscar_orcamento_ou_404(orcamento_id)
+    ultimo_envio = get_db().execute(
+        """
+        SELECT arquivo FROM pdf_enviados
+        WHERE orcamento_id = ?
+        ORDER BY enviado_em DESC, id DESC
+        LIMIT 1
+        """,
+        (orcamento_id,),
+    ).fetchone()
+    if ultimo_envio is None:
+        abort(404)
+
+    resposta = Response(ultimo_envio["arquivo"], mimetype="application/pdf")
+    resposta.headers["Content-Disposition"] = (
+        f'inline; filename="{_nome_arquivo_pdf(orcamento["cliente_nome"])}"'
     )
     return resposta
 
